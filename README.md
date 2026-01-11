@@ -1,78 +1,93 @@
 # Late Show API
 
-A Flask API for managing episodes, guests, and appearances on a late-night talk show.
+This is my Flask API project for managing episodes, guests, and appearances on a late-night talk show. I built this as part of my Phase 4 code challenge.
 
-## Features
+## What it does
 
-- Manage episodes with dates and numbers
-- Track guests with names and occupations
-- Record appearances with ratings (1-5)
-- Full CRUD operations with proper validations
-- RESTful API design
+- Keep track of episodes with their air dates and episode numbers
+- Manage guest information including names and occupations
+- Record guest appearances on episodes with ratings from 1-5
+- Provide REST API endpoints for all operations
 
-## Setup
+## Getting started
 
-1. **Install dependencies:**
+### Installation
+
+First, install the required packages:
+
 ```bash
 pipenv install
-# or
+```
+
+Or if you prefer pip:
+
+```bash
 pip install -r requirements.txt
 ```
 
-2. **Initialize the database:**
+### Database setup
+
+Run the seed file to create and populate the database:
+
 ```bash
 pipenv run python seed.py
 ```
 
-3. **Run the application:**
+### Running the app
+
+Start the Flask server:
+
 ```bash
 pipenv run python app.py
 ```
 
-The API will be available at `http://localhost:5000`
+The API runs on `http://localhost:5555`
 
-## Database Models
+## How the database works
 
-### Episode
-- `id`: Primary key
-- `date`: Episode air date (string)
-- `number`: Episode number (integer)
-- **Relationships**: Has many guests through appearances
+I designed three main models:
 
-### Guest
-- `id`: Primary key
-- `name`: Guest name (string)
-- `occupation`: Guest occupation (string)
-- **Relationships**: Has many episodes through appearances
+**Episode**
+- id (primary key)
+- date (when it aired)
+- number (episode number)
+- Connected to guests through appearances
 
-### Appearance
-- `id`: Primary key
-- `rating`: Rating from 1-5 (integer, validated)
-- `episode_id`: Foreign key to Episode
-- `guest_id`: Foreign key to Guest
-- **Relationships**: Belongs to episode and guest
-- **Validations**: Rating must be between 1 and 5 (inclusive)
+**Guest** 
+- id (primary key)
+- name (guest's full name)
+- occupation (what they do for work)
+- Connected to episodes through appearances
 
-## API Endpoints
+**Appearance**
+- id (primary key) 
+- rating (1-5 scale, validated)
+- episode_id (links to episode)
+- guest_id (links to guest)
+- This creates the many-to-many relationship between episodes and guests
+
+I added validation so ratings must be between 1 and 5, and set up cascade deletes so removing an episode or guest also removes their appearances.
+
+## API endpoints I built
 
 ### GET /episodes
-**Description**: Returns all episodes
+Gets all episodes in the database.
 
-**Response**:
+Returns:
 ```json
 [
   {
     "id": 1,
-    "date": "1/11/99",
+    "date": "1/11/99", 
     "number": 1
   }
 ]
 ```
 
 ### GET /episodes/:id
-**Description**: Returns a specific episode with its appearances
+Gets one episode with all its guest appearances.
 
-**Success Response**:
+Success response:
 ```json
 {
   "id": 1,
@@ -94,7 +109,7 @@ The API will be available at `http://localhost:5000`
 }
 ```
 
-**Error Response** (404):
+If episode doesn't exist:
 ```json
 {
   "error": "Episode not found"
@@ -102,9 +117,9 @@ The API will be available at `http://localhost:5000`
 ```
 
 ### GET /guests
-**Description**: Returns all guests
+Gets all guests.
 
-**Response**:
+Returns:
 ```json
 [
   {
@@ -116,9 +131,9 @@ The API will be available at `http://localhost:5000`
 ```
 
 ### POST /appearances
-**Description**: Creates a new appearance
+Creates a new guest appearance on an episode.
 
-**Request Body**:
+Send this data:
 ```json
 {
   "rating": 5,
@@ -127,7 +142,7 @@ The API will be available at `http://localhost:5000`
 }
 ```
 
-**Success Response** (201):
+Success response:
 ```json
 {
   "id": 4,
@@ -147,43 +162,40 @@ The API will be available at `http://localhost:5000`
 }
 ```
 
-**Error Response** (400):
+If validation fails:
 ```json
 {
   "errors": ["Rating must be between 1 and 5"]
 }
 ```
 
-## Testing with Postman
+### DELETE /episodes/:id
+Deletes an episode and all its appearances.
 
-1. Import the provided Postman collection: `lateshow-api.postman_collection.json`
-2. Start the Flask application
-3. Run the requests in the collection to test all endpoints
+## Testing
 
-## Project Structure
+I've included a Postman collection (`lateshow-api.postman_collection.json`) that you can import to test all the endpoints. Just import it into Postman and run the requests.
+
+## Project structure
 
 ```
-├── app.py                              # Main Flask application
-├── seed.py                             # Database seeding script
-├── requirements.txt                    # Python dependencies
-├── Pipfile                            # Pipenv configuration
-├── lateshow-api.postman_collection.json # Postman test collection
-└── README.md                          # This file
+├── app.py                    # Main Flask app with models and routes
+├── seed.py                   # Database setup and sample data
+├── requirements.txt          # Python dependencies
+├── Pipfile                   # Pipenv config
+├── lateshow-api.postman_collection.json  # API tests
+└── README.md                 # This file
 ```
 
-## Technologies Used
+## Tech stack
 
-- **Flask**: Web framework
-- **SQLAlchemy**: ORM for database operations
-- **Flask-Migrate**: Database migrations
-- **SQLite**: Database (default)
+- Flask for the web framework
+- SQLAlchemy for database operations
+- SQLite for the database
+- Flask-Migrate for database migrations
 
-## Development
+**Author:** Esther Kuria
 
-To contribute to this project:
+## Notes
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with the provided Postman collection
-5. Submit a pull request
+This was a fun project to work on! The trickiest part was getting the many-to-many relationship right between episodes and guests through the appearances table. I made sure to include proper error handling and validation as required.

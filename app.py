@@ -11,7 +11,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Models
+# Database Models
 class Episode(db.Model):
     __tablename__ = 'episodes'
     
@@ -19,17 +19,18 @@ class Episode(db.Model):
     date = db.Column(db.String(20), nullable=False)
     number = db.Column(db.Integer, nullable=False)
     
+    # Relationship to appearances
     appearances = db.relationship('Appearance', backref='episode', cascade='all, delete-orphan')
     
     def to_dict(self, include_appearances=False):
-        data = {
+        episode_dict = {
             'id': self.id,
             'date': self.date,
             'number': self.number
         }
         if include_appearances:
-            data['appearances'] = [appearance.to_dict() for appearance in self.appearances]
-        return data
+            episode_dict['appearances'] = [appearance.to_dict() for appearance in self.appearances]
+        return episode_dict
 
 class Guest(db.Model):
     __tablename__ = 'guests'
@@ -38,6 +39,7 @@ class Guest(db.Model):
     name = db.Column(db.String(100), nullable=False)
     occupation = db.Column(db.String(100), nullable=False)
     
+    # Relationship to appearances
     appearances = db.relationship('Appearance', backref='guest', cascade='all, delete-orphan')
     
     def to_dict(self):
@@ -71,7 +73,7 @@ class Appearance(db.Model):
             'guest': self.guest.to_dict()
         }
 
-# Routes
+# API Routes
 @app.route('/episodes', methods=['GET'])
 def get_episodes():
     episodes = Episode.query.all()
@@ -94,32 +96,43 @@ def create_appearance():
     try:
         data = request.get_json()
         
-        # Validate required fields
+        # Check if all required fields are present
         if not all(key in data for key in ['rating', 'episode_id', 'guest_id']):
             return jsonify({'errors': ['Missing required fields']}), 400
         
-        # Check if episode and guest exist
+        # Make sure episode and guest exist
         episode = Episode.query.get(data['episode_id'])
         guest = Guest.query.get(data['guest_id'])
         
         if not episode or not guest:
             return jsonify({'errors': ['Episode or Guest not found']}), 400
         
-        appearance = Appearance(
+        new_appearance = Appearance(
             rating=data['rating'],
             episode_id=data['episode_id'],
             guest_id=data['guest_id']
         )
         
-        db.session.add(appearance)
+        db.session.add(new_appearance)
         db.session.commit()
         
-        return jsonify(appearance.to_dict()), 201
+        return jsonify(new_appearance.to_dict()), 201
         
     except ValueError as e:
         return jsonify({'errors': [str(e)]}), 400
     except Exception as e:
         return jsonify({'errors': ['Failed to create appearance']}), 400
+
+@app.route('/episodes/<int:id>', methods=['DELETE'])
+def delete_episode(id):
+    episode = Episode.query.get(id)
+    if not episode:
+        return jsonify({'error': 'Episode not found'}), 404
+    
+    db.session.delete(episode)
+    db.session.commit()
+    
+    return jsonify({'message': 'Episode deleted successfully'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5555)
