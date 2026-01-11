@@ -122,4 +122,4 @@ def create_appearance():
         return jsonify({'errors': ['Failed to create appearance']}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5555)
