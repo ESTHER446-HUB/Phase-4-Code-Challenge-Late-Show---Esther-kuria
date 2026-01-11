@@ -1,0 +1,46 @@
+from app import app, db, Episode, Guest, Appearance
+
+def seed_data():
+    with app.app_context():
+        # Clear existing data
+        db.drop_all()
+        db.create_all()
+        
+        # Create episodes
+        episodes = [
+            Episode(date="1/11/99", number=1),
+            Episode(date="1/12/99", number=2),
+            Episode(date="1/13/99", number=3),
+        ]
+        
+        # Create guests
+        guests = [
+            Guest(name="Michael J. Fox", occupation="actor"),
+            Guest(name="Sandra Bernhard", occupation="Comedian"),
+            Guest(name="Tracey Ullman", occupation="television actress"),
+        ]
+        
+        # Add to database
+        for episode in episodes:
+            db.session.add(episode)
+        for guest in guests:
+            db.session.add(guest)
+        
+        db.session.commit()
+        
+        # Create appearances
+        appearances = [
+            Appearance(rating=4, episode_id=1, guest_id=1),
+            Appearance(rating=5, episode_id=2, guest_id=2),
+            Appearance(rating=3, episode_id=3, guest_id=3),
+        ]
+        
+        for appearance in appearances:
+            db.session.add(appearance)
+        
+        db.session.commit()
+        
+        print("Database seeded successfully!")
+
+if __name__ == '__main__':
+    seed_data()
